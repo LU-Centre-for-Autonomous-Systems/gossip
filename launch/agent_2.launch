@@ -1,0 +1,12 @@
+<launch>
+  <group ns="agent_2">
+    <node name="consensus" pkg="gossip" type="consensus_node.py">
+      <rosparam param="neighbor_namespaces">
+        ["/agent_1", "/agent_3"]
+      </rosparam>
+    <rosparam param="state">
+        [245, -138, 20, 1]
+    </rosparam>
+    </node>
+  </group>
+</launch>
