@@ -19,16 +19,16 @@ class Gossip:
             # Here, we use a buffer of size 10 to store the received messages.
             # This is because the subscriber callback is automaticly called in another thread and we can't control it.
             # This part is different from the C++ version.
-            self.__deque = deque(maxlen=10)
+            self._deque = deque(maxlen=10)
 
         def callback(self, message: Float64MultiArray):
-            self.__deque.append(message.data)
+            self._deque.append(message.data)
 
         def empty(self) -> bool:
-            return len(self.__deque) == 0
+            return len(self._deque) == 0
 
         def receive(self) -> NDArray[np.float64]:
-            data_lst = self.__deque.popleft()
+            data_lst = self._deque.popleft()
             data = np.array(data_lst, dtype=np.float64)
 
             return data
@@ -36,24 +36,24 @@ class Gossip:
     def __init__(
         self, self_namespace: str, neighbor_namespaces: List[str], topic_name: str
     ):
-        self.publisher = rospy.Publisher(
+        self._publisher = rospy.Publisher(
             self_namespace + topic_name, Float64MultiArray, queue_size=10
         )
-        self.message = Float64MultiArray()
+        self._message = Float64MultiArray()
 
-        self.subscribers = [
+        self._subscribers = [
             self.NeighborSubscriber(neighbor_namespace, topic_name)
             for neighbor_namespace in neighbor_namespaces
         ]
 
     def broadcast(self, state: NDArray[np.float64]):
-        self.message.data = state.tolist()
-        self.publisher.publish(self.message)
+        self._message.data = state.tolist()
+        self._publisher.publish(self._message)
 
     def gather(self) -> List[NDArray[np.float64]]:
         neighbor_states = []
 
-        for subscriber in self.subscribers:
+        for subscriber in self._subscribers:
             if not subscriber.empty():
                 neighbor_states.append(subscriber.receive())
 
